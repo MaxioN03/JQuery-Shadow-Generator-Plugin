@@ -1,0 +1,14 @@
+body{
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.test-block{
+  width: 15vw;
+  height: 15vw;
+  background: crimson;
+}
