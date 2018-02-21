@@ -5,6 +5,7 @@
       shadowColor:"#ddd",
       blur:"10px",
       maxShift:100,
+      reverseShadow:true,
     }, options);
 
     var make = function () {
@@ -34,8 +35,9 @@
         var currentShiftXProportion = currentShiftX / (viewportWidth);
         var currentShiftYProportion = currentShiftY / (viewportHeight);
 
-        var shadowShiftX = -1*options.maxShift*currentShiftXProportion;
-        var shadowShiftY = -1*options.maxShift*currentShiftYProportion;
+        var direction = options.reverseShadow ? -1 : 1;
+        var shadowShiftX = direction*options.maxShift*currentShiftXProportion;
+        var shadowShiftY = direction*options.maxShift*currentShiftYProportion;
 
 
 
