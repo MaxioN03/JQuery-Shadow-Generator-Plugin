@@ -1,11 +1,20 @@
 (function ($) {
-  jQuery.fn.addScrollShadow = function (options) {
+  jQuery.fn.mouseMoveShadow = function (options) {
+
 
     var options = $.extend({
-      shadowColor:"#ddd",
-      blur:"10px",
-      maxShift:100,
-      reverseShadow:true,
+      shadowColor: "#370b31",
+      blur: 5,
+      maxShift: 50,
+      reverseShadow: true,
+      changeBlur: {
+        fromCenter: true,
+        valueOfChange: 10,
+      },
+      //TODO Изменения цвета (для начала в RGB)
+      changeColor: {
+        fromCenter: true,
+      }
     }, options);
 
     var make = function () {
@@ -36,20 +45,29 @@
         var currentShiftYProportion = currentShiftY / (viewportHeight);
 
         var direction = options.reverseShadow ? -1 : 1;
-        var shadowShiftX = direction*options.maxShift*currentShiftXProportion;
-        var shadowShiftY = direction*options.maxShift*currentShiftYProportion;
+        var shadowShiftX = direction * options.maxShift * currentShiftXProportion;
+        var shadowShiftY = direction * options.maxShift * currentShiftYProportion;
 
+        //Count distance from center to angle, then to mouse position
+        var maxDistanceFromElementCenter = countHypotenuse(viewportWidth - centerX, viewportHeight - centerY);
+        var currentDistanceFromElementCenter = countHypotenuse(currentShiftX, currentShiftY);
 
+        var blur = options.changeBlur.fromCenter ? options.blur + (currentDistanceFromElementCenter / maxDistanceFromElementCenter) * options.changeBlur.valueOfChange : (1-(currentDistanceFromElementCenter/maxDistanceFromElementCenter))*options.changeBlur.valueOfChange;
 
-        var boxShadowConfig = shadowShiftX + "px " + shadowShiftY + "px " + options.blur + options.shadowColor;
+        var boxShadowConfig = "drop-shadow(" + shadowShiftX + "px " + shadowShiftY + "px " + blur + "px " + options.shadowColor + ")";
 
-        //console.log(boxShadowConfig);
-
-        $(myThis).css('box-shadow', boxShadowConfig);
+        console.log(boxShadowConfig);
+        //filter: drop-shadow(0px 15px 0 #000);
+        $(myThis).css('filter', boxShadowConfig);
       })
     };
 
     return this.each(make);
     // в итоге, метод responsiveBlock вернет текущий объект jQuery обратно
   };
+
+  function countHypotenuse(a, b) {
+    return Math.sqrt(a * a + b * b);
+  }
+
 })(jQuery);
