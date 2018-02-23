@@ -1,20 +1,16 @@
 (function ($) {
   jQuery.fn.mouseMoveShadow = function (options) {
 
-
     var options = $.extend({
+      parentElem: window,
       shadowColor: "#861f1f",
       blur: 0,
-      maxShift: 200,
+      maxShift: 30,
       reverseShadow: true,
       changeBlur: {
         fromCenter: true,
         valueOfChange: 0,
       },
-      //TODO Изменения цвета (для начала в RGB)
-      changeColor: {
-        fromCenter: true,
-      }
     }, options);
 
     var myThis = $(this);
@@ -27,12 +23,14 @@
     var centerY = offset.top + height / 2;
 
 
-    var viewportHeight = $(window).height();
-    var viewportWidth = $(window).width();
+
+    var viewportHeight = $(options.parentElem).height();
+    var viewportWidth = $(options.parentElem).width();
 
 
     var colorsLine = [];
     if (options.changeColor.isChange) {
+
       for (key in options.changeColor.values) {
         colorsLine.push([key / 100, getColorFromRGBString(options.changeColor.values[key])])
       }
@@ -68,18 +66,19 @@
         if (colorsLine) {
           colorsLine.forEach(function (color, i, colors) {
             if (Math.abs(currentDistanceFromElementCenterProprtion) > color[0]) {
-              if (i != (colors.length - 1)) {
-                currentLeftSideColors = [colors[i], colors[++i]];
+              if (i == (colors.length - 1)) {
+                currentLeftSideColors = [colors[i], [1, colors[i][1]]];
+
               }
               else {
-                currentLeftSideColors = [colors[i], [1, colors[i][1]]];
+                currentLeftSideColors = [colors[i], colors[++i]];
               }
             }
           })
         }
 
         //РЕЗКОЕ ИЗМЕНЕНИЕ
-        shadowColor = "rgb("+currentLeftSideColors[0][1][0]+","+currentLeftSideColors[0][1][1]+","+currentLeftSideColors[0][1][2]+")";
+        shadowColor = "rgb(" + currentLeftSideColors[0][1][0] + "," + currentLeftSideColors[0][1][1] + "," + currentLeftSideColors[0][1][2] + ")";
 
 
         //TODO плавное изменение
@@ -87,28 +86,27 @@
         var colorChangeDistance = [maxDistanceFromElementCenter * currentLeftSideColors[0][0] - start, maxDistanceFromElementCenter * currentLeftSideColors[1][0] - start];
 
         var distanceMouse = currentDistanceFromElementCenter - start;
-        var distanceInterval = colorChangeDistance[1]-colorChangeDistance[0];
-        var distanceMouseProportion = distanceMouse/distanceInterval;
+        var distanceInterval = colorChangeDistance[1] - colorChangeDistance[0];
+        var distanceMouseProportion = distanceMouse / distanceInterval;
 
 
         var countedColors = [];
 
-        currentLeftSideColors[0][1].forEach(function(color,i,colors){
-          var difference = currentLeftSideColors[0][1][i]-currentLeftSideColors[1][1][i];
+        currentLeftSideColors[0][1].forEach(function (color, i, colors) {
+          var difference = currentLeftSideColors[0][1][i] - currentLeftSideColors[1][1][i];
 
 
-          if(difference<=0){
-            countedColors.push(Math.round(Number(currentLeftSideColors[0][1][i])+Number(Math.abs(difference)*distanceMouseProportion)));
+          if (difference <= 0) {
+            countedColors.push(Math.round(Number(currentLeftSideColors[0][1][i]) + Number(Math.abs(difference) * distanceMouseProportion)));
           }
-          else{
-            countedColors.push(Math.round(Number(currentLeftSideColors[0][1][i])-Number(Math.abs(difference)*distanceMouseProportion)));
+          else {
+            countedColors.push(Math.round(Number(currentLeftSideColors[0][1][i]) - Number(Math.abs(difference) * distanceMouseProportion)));
           }
 
         });
 
 
-        shadowColor = "rgb("+countedColors[0]+","+countedColors[1]+","+countedColors[2]+")";
-
+        shadowColor = "rgb(" + countedColors[0] + "," + countedColors[1] + "," + countedColors[2] + ")";
 
 
         var blur = options.changeBlur.fromCenter ? options.blur + (currentDistanceFromElementCenter / maxDistanceFromElementCenter) * options.changeBlur.valueOfChange : (1 - (currentDistanceFromElementCenter / maxDistanceFromElementCenter)) * options.changeBlur.valueOfChange;
