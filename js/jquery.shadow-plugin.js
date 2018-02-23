@@ -2,11 +2,10 @@
   jQuery.fn.mouseMoveShadow = function (options) {
 
 
-
     var options = $.extend({
-      shadowColor: "#370b31",
+      shadowColor: "#861f1f",
       blur: 0,
-      maxShift: 100,
+      maxShift: 200,
       reverseShadow: true,
       changeBlur: {
         fromCenter: true,
@@ -18,44 +17,39 @@
       }
     }, options);
 
+    var myThis = $(this);
+
+    //Get center of our shadowing object
+    var offset = myThis.offset();
+    var width = myThis.width();
+    var height = myThis.height();
+    var centerX = offset.left + width / 2;
+    var centerY = offset.top + height / 2;
+
+
+    var viewportHeight = $(window).height();
+    var viewportWidth = $(window).width();
+
+
     var colorsLine = [];
     if (options.changeColor.isChange) {
       for (key in options.changeColor.values) {
-        //console.log(getColorFromRGBString(options.changeColor.values[key]));
-        colorsLine.push([key/100,getColorFromRGBString(options.changeColor.values[key])])
+        colorsLine.push([key / 100, getColorFromRGBString(options.changeColor.values[key])])
       }
     }
 
-    console.log(colorsLine);
 
     var make = function () {
-      var myThis = $(this);
-      // реализация работы метода с отдельным элементом страницы
+
       $('body').mousemove(function (e) {
-        //console.log("X: "+e.pageX);
-        //console.log("Y: "+e.pageY);
-        //console.log("Viewport height: "+$( window ).height());
-        //console.log("Viewport width: "+$( window ).width());
-
-        var viewportHeight = $(window).height();
-        var viewportWidth = $(window).width();
-
-        //Get center of our shadowing object
-        var offset = myThis.offset();
-        var width = myThis.width();
-        var height = myThis.height();
-        var centerX = offset.left + width / 2;
-        var centerY = offset.top + height / 2;
 
         //Current shift of mouse from center of object to edge of screen
         var currentShiftX = e.pageX - centerX;
         var currentShiftY = e.pageY - centerY;
 
         //Current shift in percents
-        var currentShiftXProportion = currentShiftX / (viewportWidth-centerX);
-        var currentShiftYProportion = currentShiftY / (viewportHeight-centerY);
-
-
+        var currentShiftXProportion = currentShiftX / (viewportWidth - centerX);
+        var currentShiftYProportion = currentShiftY / (viewportHeight - centerY);
 
         var direction = options.reverseShadow ? -1 : 1;
         var shadowShiftX = direction * options.maxShift * currentShiftXProportion;
@@ -64,30 +58,58 @@
         //Count distance from center to angle, then to mouse position
         var maxDistanceFromElementCenter = countHypotenuse(viewportWidth - centerX, viewportHeight - centerY);
         var currentDistanceFromElementCenter = countHypotenuse(currentShiftX, currentShiftY);
-        var currentDistanceFromElementCenterProprtion = currentDistanceFromElementCenter/maxDistanceFromElementCenter;
-
-        //console.log(currentDistanceFromElementCenterProprtion)
-
+        var currentDistanceFromElementCenterProprtion = currentDistanceFromElementCenter / maxDistanceFromElementCenter;
 
 
         var shadowColor = options.shadowColor;
 
-        if(colorsLine){
-          colorsLine.forEach(function(color,i,colors){
-            var lastColorsElement;
-            if(Math.abs(currentDistanceFromElementCenterProprtion)>color[0]){
-              lastColorsElement = color;
-              // РЕЗКОЕ ИЗМЕНЕНИЕ
-              shadowColor = "rgb("+color[1][0]+","+color[1][1]+","+color[1][2]+")";
-              //TODO плавное изменение
-              /*if(i!=colors.length-1){
-                let start = colors[i][0];
-                let end = colors[++i][0];
-                console.log(start+":"+end);
-              }*/
+        //TODO бинарный поиск
+        var currentLeftSideColors;
+        if (colorsLine) {
+          colorsLine.forEach(function (color, i, colors) {
+            if (Math.abs(currentDistanceFromElementCenterProprtion) > color[0]) {
+              if (i != (colors.length - 1)) {
+                currentLeftSideColors = [colors[i], colors[++i]];
+              }
+              else {
+                currentLeftSideColors = [colors[i], [1, colors[i][1]]];
+              }
             }
           })
         }
+
+        //РЕЗКОЕ ИЗМЕНЕНИЕ
+        shadowColor = "rgb("+currentLeftSideColors[0][1][0]+","+currentLeftSideColors[0][1][1]+","+currentLeftSideColors[0][1][2]+")";
+
+
+        //TODO плавное изменение
+        var start = maxDistanceFromElementCenter * currentLeftSideColors[0][0];
+        var colorChangeDistance = [maxDistanceFromElementCenter * currentLeftSideColors[0][0] - start, maxDistanceFromElementCenter * currentLeftSideColors[1][0] - start];
+
+        var distanceMouse = currentDistanceFromElementCenter - start;
+        var distanceInterval = colorChangeDistance[1]-colorChangeDistance[0];
+        var distanceMouseProportion = distanceMouse/distanceInterval;
+
+
+        var countedColors = [];
+
+        currentLeftSideColors[0][1].forEach(function(color,i,colors){
+          var difference = currentLeftSideColors[0][1][i]-currentLeftSideColors[1][1][i];
+
+
+          if(difference<=0){
+            countedColors.push(Math.round(Number(currentLeftSideColors[0][1][i])+Number(Math.abs(difference)*distanceMouseProportion)));
+          }
+          else{
+            countedColors.push(Math.round(Number(currentLeftSideColors[0][1][i])-Number(Math.abs(difference)*distanceMouseProportion)));
+          }
+
+        });
+
+
+        shadowColor = "rgb("+countedColors[0]+","+countedColors[1]+","+countedColors[2]+")";
+
+
 
         var blur = options.changeBlur.fromCenter ? options.blur + (currentDistanceFromElementCenter / maxDistanceFromElementCenter) * options.changeBlur.valueOfChange : (1 - (currentDistanceFromElementCenter / maxDistanceFromElementCenter)) * options.changeBlur.valueOfChange;
 
@@ -99,7 +121,6 @@
     };
 
     return this.each(make);
-    // в итоге, метод responsiveBlock вернет текущий объект jQuery обратно
   };
 
   function countHypotenuse(a, b) {
