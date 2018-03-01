@@ -37,10 +37,50 @@ Jquery plugin for creating shadow effect with elements on your page. Plugin help
 
 ![Example image of shadow](https://pp.userapi.com/c841027/v841027794/6de62/3gPJFhuRpeo.jpg "Element shadow")
    
-## Add options to create your custom effect:
+## Possible options:
   ```javascript
-  shadowColor:"#000" //string with color (rgb,rgba, HEX)
-  blur:"10px" //Blur of shadow
-  maxShift:100 //Max shift of shadow in px
+      shadowColor: "#861f1f", //Color of your Shadow
+      blur: 0,  //Value of your blur
+      maxShift: 50, //Max shift of your shadow
+      reverseShadow: true,  //If true, mouse in one side of your shadow element, shadow in another side
+      reverseAxis: false, //If true, when move mouse in X Axis, shadow move in Y Axis, the same is true for the Y axis
+      overScreen: true, //If true, shadow can cross over screen edge. If false, shadow always stay in border of screen
+      changeBlur: { //Change blur wen moving mouse
+        fromCenter: true,
+        valueOfChange: 0,
+      },
+      changeColor: {
+        isChange: true,
+        fromCenter: true, //direction of changing (NOT WORKING NOW)
+        smoothChange: true, //If true, color change smoot from one color to another
+        values: { //Object with strcuture PERCENT OF MAX DISTANCE : COLOR, MAX DISTANCE - DISTANCE FROM ELEMENT CENTER TO SCREEN ANGLE
+          0: "RGB(254,218,117)",
+          25: "RGB(250,126,30)",
+          50: "RGB(214,41,118)",
+          75: "RGB(150,47,191)",
+          100: "RGB(79,91,213)",
+        }
+      }
   ```
-### Example of adding options:
+  
+## Example of adding options:
+  ```javascript
+$(document).ready(function () {
+
+  $('#test-block').mouseMoveShadow({
+    changeColor: {
+      isChange: true,
+      fromCenter: true,
+      smoothChange: false,
+      values: {
+        0: "RGB(254,218,117)",
+        25: "RGB(250,126,30)",
+        50: "RGB(214,41,118)",
+        75: "RGB(150,47,191)",
+        100: "RGB(79,91,213)",
+      }
+    }
+  });
+  
+});
+  ```
